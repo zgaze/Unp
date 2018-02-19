@@ -9,6 +9,19 @@
 
 #include "../unp.h"
 
+#include <sys/types.h>  
+#include <sys/socket.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <arpa/inet.h>
+#include <memory.h>
+
+
+#define handle_error(msg) \
+    do { perror(msg); exit(1); } while (0)
+
 ssize_t readn(int fd, void* vptr, size_t n)
 {
     ssize_t  nread;
@@ -71,4 +84,61 @@ again:
 }
 
 
+int Accept(int listen_fd) 
+{
+    struct sockaddr_in cliaddr;
+    socklen_t clilen = sizeof(cliaddr);
+    int connfd = accept(listen_fd, (struct sockaddr*)&cliaddr, &clilen);
+ACCEPT_AGAIN:
+    if (connfd == -1){
+        printf("accept error\n");
+        if (errno == EINTR || errno == EAGAIN)
+            goto ACCEPT_AGAIN;
+        else 
+            return -1;
+    } else
+        return connfd;
+}
 
+int Tcp_listen(const char *ip, uint16_t port)
+{
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd == -1)
+        handle_error("socket error");
+    struct sockaddr_in servaddr;
+    memset(&servaddr, 0, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    if (ip == NULL)
+        servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    else {
+        if (inet_pton (AF_INET, ip, &servaddr.sin_addr) <= 0)
+            handle_error("ip is wrong");
+    }
+    servaddr.sin_port = htons(port);
+    if ( -1 == bind(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr)))
+        handle_error("bind error");
+    if (-1 == listen(sockfd, 5000))
+        handle_error("listen");
+    return sockfd;
+}
+
+int Tcp_connect(const char *ip, uint16_t port)
+{
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd == -1)
+        handle_error("socket error");
+    struct sockaddr_in servaddr;
+    memset(&servaddr, 0, sizeof(servaddr)); 
+    servaddr.sin_family = AF_INET;
+    if (inet_pton (AF_INET, ip, &servaddr.sin_addr) <= 0)
+        handle_error("ip is wrong");
+    servaddr.sin_port = htons(port);
+CONNECT_AGAIN:
+    if (-1 == connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr) )) {
+        if (errno == EINTR)
+            goto CONNECT_AGAIN;
+        else 
+            handle_error("connect ");
+    }
+    return sockfd;
+}
