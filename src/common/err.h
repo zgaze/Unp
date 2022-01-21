@@ -1,14 +1,14 @@
 /* ***********************************************************************
 
-  > File Name: unp.h
-  > Author: zzy
+  > File Name: err.h
+  > Author: zgaze
   > Mail: 942744575@qq.com 
   > Created Time: Tue 28 Nov 2017 10:23:33 AM CST
 
  ********************************************************************** */
 
-#ifndef __UNP_H__
-#define __UNP_H__
+#ifndef __ERR_H__
+#define __ERR_H__
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -48,7 +48,6 @@ void err_ret(const char* fmt, ...)
 	}
 	strcat(buf, "\n");
 
-	//printf("%s",buf); //和下面三行代码等效
 	fflush(stdout);
 	fputs(buf, stderr);
 	fflush(NULL);
@@ -71,5 +70,5 @@ void pr_exit(int status)
 	}
 }
 
-#endif  //__UNP_H__
+#endif  //__ERR_H__
 

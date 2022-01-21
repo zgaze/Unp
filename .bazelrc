@@ -1,0 +1,7 @@
+build --copt=-w
+build --copt=-mfma
+build --cxxopt=-std=c++14
+build --copt=-march=native
+build --copt=-O3
+build --copt=-fpic
+build --cxxopt=-DTIXML_USE_STL
