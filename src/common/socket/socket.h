@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <memory.h>
@@ -133,6 +134,16 @@ CONNECT_AGAIN:
       handle_error("connect ");
   }
   return sockfd;
+}
+
+int SetIoBlockability(int fd, int nonblock) {
+  int val;
+  if (nonblock) {
+    val = (O_NONBLOCK | fcntl(fd, F_GETFL));
+  } else {
+    val = (~O_NONBLOCK & fcntl(fd, F_GETFL));
+  }
+  return fcntl(fd, F_SETFL, val);
 }
 
 
