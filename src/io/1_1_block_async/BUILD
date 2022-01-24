@@ -12,4 +12,5 @@ cc_binary(
   deps = [
     "//src/common:io-common",
   ],
+  linkopts = ["-lpthread"],
 )

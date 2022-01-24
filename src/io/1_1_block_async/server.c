@@ -10,7 +10,7 @@
 #include "src/common/socket/socket.h"
 #include <signal.h>
 
-void sig_child(int signal){
+void sig_child(int signal) {
   int stat;
   pid_t pid;
   while ((pid = waitpid(-1, &stat, WNOHANG)) > 0)
@@ -19,7 +19,8 @@ void sig_child(int signal){
 }
 
 #define MAXLINE  4096
-void handle_echo(int connfd){
+void* handle_echo(void* fd) {
+  int connfd = *(int*)fd;
   ssize_t n;
   char buf[MAXLINE];
 AGAIN:
@@ -27,10 +28,15 @@ AGAIN:
     printf("recive %d message:%s", n, buf);
     writen(connfd, buf, n);
   }
-  if (n < 0 && errno == EINTR)
+  if (n == 0) {
+    printf("disconnect!\n");
+    close(connfd);
+    return NULL;
+  } else if (n < 0 && errno == EINTR)
     goto AGAIN;
   else if (n < 0)
     err_exit("read error");
+  return NULL;
 }
 
 int main(int argc, const char* argv[])
@@ -42,15 +48,11 @@ int main(int argc, const char* argv[])
   int childpid;
   signal(SIGPIPE, SIG_IGN);
   signal(SIGCHLD, sig_child);
+  pthread_t tid;
   while (1) {
     if (-1 == (connfd = Accept(listen_fd)))
       handle_error("accept error");
-    if (0 == (childpid = fork())) {  // child
-      handle_echo(connfd);
-      close(listen_fd);
-      exit(0);
-    }
-    close(connfd);  // parent
+    pthread_create(&tid, NULL, &handle_echo, &connfd);
   }
 }
 
