@@ -2,7 +2,7 @@
 #include "src/common/socket/socket.h"
 
 #define MAXLINE 4096
-void HandleEcho(int connfd) {
+void EchoSend(int connfd) {
   char send_buf[MAXLINE], recv_buf[MAXLINE];
   while (fgets(send_buf, MAXLINE, stdin) != NULL) {
     writen(connfd, send_buf, strlen(send_buf));
@@ -17,7 +17,7 @@ int main(int argc, const char* argv[]) {
   if (argc < 3)
     err_exit("usage: cli ip port");
   int sockfd = TcpConnect(argv[1], (uint16_t)atoi(argv[2]));
-  HandleEcho(sockfd);
+  EchoSend(sockfd);
   return 0;
 }
 

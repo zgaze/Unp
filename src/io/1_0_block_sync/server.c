@@ -28,8 +28,10 @@ AGAIN:
     // sleep(10);
     writen(connfd, buf, n);
   }
-  if (n < 0 && errno == EINTR)
+  if (n < 0 && errno == EINTR) {
+    printf("try again\n");
     goto AGAIN;
+  }
   else if (n < 0)
     err_exit("read error");
 }

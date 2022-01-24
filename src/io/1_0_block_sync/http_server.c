@@ -24,10 +24,19 @@ void handle_echo(int connfd){
   char buf[MAXLINE];
 AGAIN:
   while ((n = read(connfd, buf, 4096)) > 0) {
-    printf("recive %d message:%s", n, buf);
+    printf("[recive %d message:]\n%s", n, buf);
     // sleep(10);
-    char http_buf[100] = "hello world\n";
-    writen(connfd, http_buf, strlen(http_buf));
+    char buf[1024];
+    strcpy(buf, "HTTP/1.0 200 OK\r\n");
+    send(connfd, buf, strlen(buf), 0);
+    sprintf(buf, "Content-Type: text/html\r\n");
+    send(connfd, buf, strlen(buf), 0);
+    sprintf(buf, "Content-Length: 13\r\n");
+    send(connfd, buf, strlen(buf), 0);
+    strcpy(buf, "\r\n");
+    send(connfd, buf, strlen(buf), 0);
+    strcpy(buf, "hello world!\n");
+    send(connfd, buf, strlen(buf), 0);
   }
   if (n < 0 && errno == EINTR)
     goto AGAIN;
