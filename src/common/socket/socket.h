@@ -76,7 +76,6 @@ again:
   return n;
 }
 
-
 int Accept(int listen_fd) {
   struct sockaddr_in cliaddr;
   socklen_t clilen = sizeof(cliaddr);
@@ -88,8 +87,28 @@ ACCEPT_AGAIN:
       goto ACCEPT_AGAIN;
     else 
       return -1;
-  } else
+  } else {
+    printf("Accept a new connection:%s:%d",
+      inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
     return connfd;
+  }
+}
+
+int AcceptWithAddr(int listen_fd, struct sockaddr_in* cliaddr) {
+  socklen_t clilen = sizeof(struct sockaddr_in);
+  int connfd = accept(listen_fd, (struct sockaddr*)cliaddr, &clilen);
+ACCEPT_AGAIN:
+  if (connfd == -1){
+    printf("accept error\n");
+    if (errno == EINTR || errno == EAGAIN)
+      goto ACCEPT_AGAIN;
+    else 
+      return -1;
+  } else {
+    printf("Accept a new connection:%s:%d",
+      inet_ntoa(cliaddr->sin_addr), ntohs(cliaddr->sin_port));
+    return connfd;
+  }
 }
 
 int TcpListen(const char *ip, uint16_t port) {
