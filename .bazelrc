@@ -4,5 +4,6 @@ build --cxxopt=-std=c++14
 build --copt=-march=native
 build --copt=-O0
 build -c dbg
+build --copt=-std=c99
 build --copt=-fpic
 build --cxxopt=-DTIXML_USE_STL

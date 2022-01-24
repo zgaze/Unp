@@ -10,29 +10,30 @@ void sig_child(int signal) {
   return ;
 }
 
+int max_fd = 0;
+int fds[4096];
 #define MAXLINE  4096
-void* handle_echo(void* fd) {
-  printf("Create a New Thread\n");
-  int connfd = *(int*)fd;
-  ssize_t n;
+void* handle_all_fd() {
+  int n = -1;
   char buf[MAXLINE];
+  printf("Create a New Thread\n");
   while (1) {
-    n = read(connfd, buf, 4096);
-    printf("read return %d\n", n);
-    if (n > 0) {
-      printf("recive %d message:%s", n, buf);
-      writen(connfd, buf, n);
-      continue;
-    } else if (n == 0) {
-      printf("disconnect!\n");
-      close(connfd);
-      break;
-    } else if (n < 0 && errno == EINTR) {
-      continue;
-    } else if (n < 0) {
-      printf("read wait loop once\n");
-      sleep(1);
+    for (int i = 0; i < max_fd; ++i) {
+      if (fds[i] == -1) continue;
+      n = read(fds[i], buf, MAXLINE);
+      if (n > 0) {
+        printf("recive %d message:%s", n, buf);
+        writen(fds[i], buf, n);
+      } else if (n == 0) {
+        printf("disconnect!\n");
+        close(fds[i]);
+        fds[i] = -1;
+      } else if (n < 0) {
+        // 不可读
+      }
     }
+    printf("all fd one loop done, sleep 1\n");
+    sleep(1);
   }
   return NULL;
 }
@@ -47,11 +48,14 @@ int main(int argc, const char* argv[])
   signal(SIGPIPE, SIG_IGN);
   signal(SIGCHLD, sig_child);
   pthread_t tid;
+  pthread_create(&tid, NULL, &handle_all_fd, &connfd);
+  memset(fds, 0, sizeof(fds));
   while (1) {
     if (-1 == (connfd = Accept(listen_fd)))
       handle_error("accept error");
     SetIoBlockability(connfd, 1);
-    pthread_create(&tid, NULL, &handle_echo, &connfd);
+    fds[max_fd] = connfd;
+    __sync_fetch_and_add(&max_fd, 1);
   }
 }
 
