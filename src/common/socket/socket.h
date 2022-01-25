@@ -12,8 +12,6 @@
 #include <arpa/inet.h>
 #include <memory.h>
 
-void Test();
-
 #define handle_error(msg) \
   do { perror(msg); exit(1); } while (0)
 
@@ -105,7 +103,7 @@ ACCEPT_AGAIN:
     else 
       return -1;
   } else {
-    printf("Accept a new connection:%s:%d",
+    printf("Accept a new connection:%s:%d\n",
       inet_ntoa(cliaddr->sin_addr), ntohs(cliaddr->sin_port));
     return connfd;
   }
@@ -164,6 +162,11 @@ int SetIoBlockability(int fd, int nonblock) {
   }
   return fcntl(fd, F_SETFL, val);
 }
+
+int SetIoNonBlock(int fd) {
+  return fcntl(fd, F_SETFL, O_NONBLOCK | fcntl(fd, F_GETFL));
+}
+
 
 
 # endif // __SOCKET_H__

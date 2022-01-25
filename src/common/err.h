@@ -27,7 +27,7 @@ void err_exit(const char* fmt, ...)
 	va_start(ap, fmt);
 	char buf[MAX_LOG_BUF];
 	vsnprintf(buf, MAX_LOG_BUF, fmt, ap) ;
-	strcat(buf, "\n");
+	strcat(buf, "error \n");
 
 	//printf("%s",buf); //和下面三行代码等效
 	fflush(stdout);
